@@ -1,0 +1,6 @@
+{
+    "repos": "https://github.com/rackt/history.git",
+    "version": "v1.13.1",
+    "name": "history",
+    "main": "history.js"
+}
