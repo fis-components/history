@@ -1,8 +1,8 @@
-//import warning from 'warning'
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+import warning from 'warning';
 import deepEqual from 'deep-equal';
 import { loopAsync } from './AsyncUtils';
 import { PUSH, REPLACE, POP } from './Actions';
@@ -187,11 +187,7 @@ function createHistory() {
     var key = arguments.length <= 2 || arguments[2] === undefined ? createKey() : arguments[2];
 
     if (typeof action === 'object') {
-      //warning(
-      //  false,
-      //  'The state (2nd) argument to history.createLocation is deprecated; use a ' +
-      //  'location descriptor instead'
-      //)
+      process.env.NODE_ENV !== 'production' ? warning(false, 'The state (2nd) argument to history.createLocation is deprecated; use a ' + 'location descriptor instead') : undefined;
 
       if (typeof location === 'string') location = parsePath(location);
 

@@ -11,5 +11,5 @@
         "query-string": "^3.0.0",
         "warning": "^2.0.0"
     },
-    "version": "2.0.0-rc1"
+    "version": "2.0.0-rc2"
 }
