@@ -1,38 +1,22 @@
 'use strict';
 
-exports.__esModule = true;
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
-var _warning = require('warning');
-
-var _warning2 = _interopRequireDefault(_warning);
-
-var _queryString = require('query-string');
-
-var _runTransitionHook = require('./runTransitionHook');
-
-var _runTransitionHook2 = _interopRequireDefault(_runTransitionHook);
-
-var _parsePath = require('./parsePath');
-
-var _parsePath2 = _interopRequireDefault(_parsePath);
-
-var _deprecate = require('./deprecate');
-
-var _deprecate2 = _interopRequireDefault(_deprecate);
+import warning from 'warning';
+import { parse, stringify } from 'query-string';
+import runTransitionHook from './runTransitionHook';
+import parsePath from './parsePath';
+import deprecate from './deprecate';
 
 var SEARCH_BASE_KEY = '$searchBase';
 
 function defaultStringifyQuery(query) {
-  return _queryString.stringify(query).replace(/%20/g, '+');
+  return stringify(query).replace(/%20/g, '+');
 }
 
-var defaultParseQueryString = _queryString.parse;
+var defaultParseQueryString = parse;
 
 function isNestedObject(object) {
   for (var p in object) {
@@ -78,9 +62,9 @@ function useQueries(createHistory) {
       var queryString = undefined;
       if (!query || (queryString = stringifyQuery(query)) === '') return location;
 
-      "production" !== 'production' ? _warning2['default'](stringifyQuery !== defaultStringifyQuery || !isNestedObject(query), 'useQueries does not stringify nested query objects by default; ' + 'use a custom stringifyQuery function') : undefined;
+      process.env.NODE_ENV !== 'production' ? warning(stringifyQuery !== defaultStringifyQuery || !isNestedObject(query), 'useQueries does not stringify nested query objects by default; ' + 'use a custom stringifyQuery function') : undefined;
 
-      if (typeof location === 'string') location = _parsePath2['default'](location);
+      if (typeof location === 'string') location = parsePath(location);
 
       var searchBaseSpec = location[SEARCH_BASE_KEY];
       var searchBase = undefined;
@@ -100,7 +84,7 @@ function useQueries(createHistory) {
     // Override all read methods with query-aware versions.
     function listenBefore(hook) {
       return history.listenBefore(function (location, callback) {
-        _runTransitionHook2['default'](hook, addQuery(location), callback);
+        runTransitionHook(hook, addQuery(location), callback);
       });
     }
 
@@ -141,14 +125,14 @@ function useQueries(createHistory) {
 
     // deprecated
     function pushState(state, path, query) {
-      if (typeof path === 'string') path = _parsePath2['default'](path);
+      if (typeof path === 'string') path = parsePath(path);
 
       push(_extends({ state: state }, path, { query: query }));
     }
 
     // deprecated
     function replaceState(state, path, query) {
-      if (typeof path === 'string') path = _parsePath2['default'](path);
+      if (typeof path === 'string') path = parsePath(path);
 
       replace(_extends({ state: state }, path, { query: query }));
     }
@@ -162,11 +146,10 @@ function useQueries(createHistory) {
       createHref: createHref,
       createLocation: createLocation,
 
-      pushState: _deprecate2['default'](pushState, 'pushState is deprecated; use push instead'),
-      replaceState: _deprecate2['default'](replaceState, 'replaceState is deprecated; use replace instead')
+      pushState: deprecate(pushState, 'pushState is deprecated; use push instead'),
+      replaceState: deprecate(replaceState, 'replaceState is deprecated; use replace instead')
     });
   };
 }
 
-exports['default'] = useQueries;
-module.exports = exports['default'];
+export default useQueries;

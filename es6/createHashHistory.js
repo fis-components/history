@@ -1,45 +1,26 @@
 'use strict';
 
-exports.__esModule = true;
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _warning = require('warning');
-
-var _warning2 = _interopRequireDefault(_warning);
-
-var _invariant = require('invariant');
-
-var _invariant2 = _interopRequireDefault(_invariant);
-
-var _Actions = require('./Actions');
-
-var _ExecutionEnvironment = require('./ExecutionEnvironment');
-
-var _DOMUtils = require('./DOMUtils');
-
-var _DOMStateStorage = require('./DOMStateStorage');
-
-var _createDOMHistory = require('./createDOMHistory');
-
-var _createDOMHistory2 = _interopRequireDefault(_createDOMHistory);
-
-var _parsePath = require('./parsePath');
-
-var _parsePath2 = _interopRequireDefault(_parsePath);
+import warning from 'warning';
+import invariant from 'invariant';
+import { PUSH, POP } from './Actions';
+import { canUseDOM } from './ExecutionEnvironment';
+import { addEventListener, removeEventListener, getHashPath, replaceHashPath, supportsGoWithoutReloadUsingHash } from './DOMUtils';
+import { saveState, readState } from './DOMStateStorage';
+import createDOMHistory from './createDOMHistory';
+import parsePath from './parsePath';
 
 function isAbsolutePath(path) {
   return typeof path === 'string' && path.charAt(0) === '/';
 }
 
 function ensureSlash() {
-  var path = _DOMUtils.getHashPath();
+  var path = getHashPath();
 
   if (isAbsolutePath(path)) return true;
 
-  _DOMUtils.replaceHashPath('/' + path);
+  replaceHashPath('/' + path);
 
   return false;
 }
@@ -62,14 +43,14 @@ var DefaultQueryKey = '_k';
 function createHashHistory() {
   var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-  !_ExecutionEnvironment.canUseDOM ? "production" !== 'production' ? _invariant2['default'](false, 'Hash history needs a DOM') : _invariant2['default'](false) : undefined;
+  !canUseDOM ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Hash history needs a DOM') : invariant(false) : undefined;
 
   var queryKey = options.queryKey;
 
   if (queryKey === undefined || !!queryKey) queryKey = typeof queryKey === 'string' ? queryKey : DefaultQueryKey;
 
   function getCurrentLocation() {
-    var path = _DOMUtils.getHashPath();
+    var path = getHashPath();
 
     var key = undefined,
         state = undefined;
@@ -78,17 +59,17 @@ function createHashHistory() {
       path = stripQueryStringValueFromPath(path, queryKey);
 
       if (key) {
-        state = _DOMStateStorage.readState(key);
+        state = readState(key);
       } else {
         state = null;
         key = history.createKey();
-        _DOMUtils.replaceHashPath(addQueryStringValueToPath(path, queryKey, key));
+        replaceHashPath(addQueryStringValueToPath(path, queryKey, key));
       }
     } else {
       key = state = null;
     }
 
-    var location = _parsePath2['default'](path);
+    var location = parsePath(path);
 
     return history.createLocation(_extends({}, location, { state: state }), undefined, key);
   }
@@ -103,10 +84,10 @@ function createHashHistory() {
     }
 
     ensureSlash();
-    _DOMUtils.addEventListener(window, 'hashchange', hashChangeListener);
+    addEventListener(window, 'hashchange', hashChangeListener);
 
     return function () {
-      _DOMUtils.removeEventListener(window, 'hashchange', hashChangeListener);
+      removeEventListener(window, 'hashchange', hashChangeListener);
     };
   }
 
@@ -118,36 +99,36 @@ function createHashHistory() {
     var action = location.action;
     var key = location.key;
 
-    if (action === _Actions.POP) return; // Nothing to do.
+    if (action === POP) return; // Nothing to do.
 
     var path = (basename || '') + pathname + search;
 
     if (queryKey) {
       path = addQueryStringValueToPath(path, queryKey, key);
-      _DOMStateStorage.saveState(key, state);
+      saveState(key, state);
     } else {
       // Drop key and state.
       location.key = location.state = null;
     }
 
-    var currentHash = _DOMUtils.getHashPath();
+    var currentHash = getHashPath();
 
-    if (action === _Actions.PUSH) {
+    if (action === PUSH) {
       if (currentHash !== path) {
         window.location.hash = path;
       } else {
-        "production" !== 'production' ? _warning2['default'](false, 'You cannot PUSH the same path using hash history') : undefined;
+        process.env.NODE_ENV !== 'production' ? warning(false, 'You cannot PUSH the same path using hash history') : undefined;
       }
     } else if (currentHash !== path) {
       // REPLACE
-      _DOMUtils.replaceHashPath(path);
+      replaceHashPath(path);
     }
   }
 
-  var history = _createDOMHistory2['default'](_extends({}, options, {
+  var history = createDOMHistory(_extends({}, options, {
     getCurrentLocation: getCurrentLocation,
     finishTransition: finishTransition,
-    saveState: _DOMStateStorage.saveState
+    saveState: saveState
   }));
 
   var listenerCount = 0,
@@ -178,21 +159,21 @@ function createHashHistory() {
   }
 
   function push(location) {
-    "production" !== 'production' ? _warning2['default'](queryKey || location.state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+    process.env.NODE_ENV !== 'production' ? warning(queryKey || location.state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
 
     history.push(location);
   }
 
   function replace(location) {
-    "production" !== 'production' ? _warning2['default'](queryKey || location.state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+    process.env.NODE_ENV !== 'production' ? warning(queryKey || location.state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
 
     history.replace(location);
   }
 
-  var goIsSupportedWithoutReload = _DOMUtils.supportsGoWithoutReloadUsingHash();
+  var goIsSupportedWithoutReload = supportsGoWithoutReloadUsingHash();
 
   function go(n) {
-    "production" !== 'production' ? _warning2['default'](goIsSupportedWithoutReload, 'Hash history go(n) causes a full page reload in this browser') : undefined;
+    process.env.NODE_ENV !== 'production' ? warning(goIsSupportedWithoutReload, 'Hash history go(n) causes a full page reload in this browser') : undefined;
 
     history.go(n);
   }
@@ -217,14 +198,14 @@ function createHashHistory() {
 
   // deprecated
   function pushState(state, path) {
-    "production" !== 'production' ? _warning2['default'](queryKey || state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+    process.env.NODE_ENV !== 'production' ? warning(queryKey || state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
 
     history.pushState(state, path);
   }
 
   // deprecated
   function replaceState(state, path) {
-    "production" !== 'production' ? _warning2['default'](queryKey || state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
+    process.env.NODE_ENV !== 'production' ? warning(queryKey || state == null, 'You cannot use state without a queryKey it will be dropped') : undefined;
 
     history.replaceState(state, path);
   }
@@ -244,5 +225,4 @@ function createHashHistory() {
   });
 }
 
-exports['default'] = createHashHistory;
-module.exports = exports['default'];
+export default createHashHistory;

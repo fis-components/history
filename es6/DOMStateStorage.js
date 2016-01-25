@@ -1,15 +1,9 @@
 /*eslint-disable no-empty */
 'use strict';
 
-exports.__esModule = true;
-exports.saveState = saveState;
-exports.readState = readState;
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _warning = require('warning');
-
-var _warning2 = _interopRequireDefault(_warning);
+export { saveState };
+export { readState };
+import warning from 'warning';
 
 var KeyPrefix = '@@History/';
 var QuotaExceededError = 'QuotaExceededError';
@@ -30,14 +24,14 @@ function saveState(key, state) {
     if (error.name === SecurityError) {
       // Blocking cookies in Chrome/Firefox/Safari throws SecurityError on any
       // attempt to access window.sessionStorage.
-      "production" !== 'production' ? _warning2['default'](false, '[history] Unable to save state; sessionStorage is not available due to security settings') : undefined;
+      process.env.NODE_ENV !== 'production' ? warning(false, '[history] Unable to save state; sessionStorage is not available due to security settings') : undefined;
 
       return;
     }
 
     if (error.name === QuotaExceededError && window.sessionStorage.length === 0) {
       // Safari "private mode" throws QuotaExceededError.
-      "production" !== 'production' ? _warning2['default'](false, '[history] Unable to save state; sessionStorage is not available in Safari private mode') : undefined;
+      process.env.NODE_ENV !== 'production' ? warning(false, '[history] Unable to save state; sessionStorage is not available in Safari private mode') : undefined;
 
       return;
     }
@@ -54,7 +48,7 @@ function readState(key) {
     if (error.name === SecurityError) {
       // Blocking cookies in Chrome/Firefox/Safari throws SecurityError on any
       // attempt to access window.sessionStorage.
-      "production" !== 'production' ? _warning2['default'](false, '[history] Unable to read state; sessionStorage is not available due to security settings') : undefined;
+      process.env.NODE_ENV !== 'production' ? warning(false, '[history] Unable to read state; sessionStorage is not available due to security settings') : undefined;
 
       return null;
     }

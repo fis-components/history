@@ -1,30 +1,14 @@
 'use strict';
 
-exports.__esModule = true;
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _invariant = require('invariant');
-
-var _invariant2 = _interopRequireDefault(_invariant);
-
-var _Actions = require('./Actions');
-
-var _ExecutionEnvironment = require('./ExecutionEnvironment');
-
-var _DOMUtils = require('./DOMUtils');
-
-var _DOMStateStorage = require('./DOMStateStorage');
-
-var _createDOMHistory = require('./createDOMHistory');
-
-var _createDOMHistory2 = _interopRequireDefault(_createDOMHistory);
-
-var _parsePath = require('./parsePath');
-
-var _parsePath2 = _interopRequireDefault(_parsePath);
+import invariant from 'invariant';
+import { PUSH, POP } from './Actions';
+import { canUseDOM } from './ExecutionEnvironment';
+import { addEventListener, removeEventListener, getWindowPath, supportsHistory } from './DOMUtils';
+import { saveState, readState } from './DOMStateStorage';
+import createDOMHistory from './createDOMHistory';
+import parsePath from './parsePath';
 
 /**
  * Creates and returns a history object that uses HTML5's history API
@@ -38,23 +22,23 @@ var _parsePath2 = _interopRequireDefault(_parsePath);
 function createBrowserHistory() {
   var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-  !_ExecutionEnvironment.canUseDOM ? "production" !== 'production' ? _invariant2['default'](false, 'Browser history needs a DOM') : _invariant2['default'](false) : undefined;
+  !canUseDOM ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Browser history needs a DOM') : invariant(false) : undefined;
 
   var forceRefresh = options.forceRefresh;
 
-  var isSupported = _DOMUtils.supportsHistory();
+  var isSupported = supportsHistory();
   var useRefresh = !isSupported || forceRefresh;
 
   function getCurrentLocation(historyState) {
     historyState = historyState || window.history.state || {};
 
-    var path = _DOMUtils.getWindowPath();
+    var path = getWindowPath();
     var _historyState = historyState;
     var key = _historyState.key;
 
     var state = undefined;
     if (key) {
-      state = _DOMStateStorage.readState(key);
+      state = readState(key);
     } else {
       state = null;
       key = history.createKey();
@@ -62,7 +46,7 @@ function createBrowserHistory() {
       if (isSupported) window.history.replaceState(_extends({}, historyState, { key: key }), null, path);
     }
 
-    var location = _parsePath2['default'](path);
+    var location = parsePath(path);
 
     return history.createLocation(_extends({}, location, { state: state }), undefined, key);
   }
@@ -76,10 +60,10 @@ function createBrowserHistory() {
       transitionTo(getCurrentLocation(event.state));
     }
 
-    _DOMUtils.addEventListener(window, 'popstate', popStateListener);
+    addEventListener(window, 'popstate', popStateListener);
 
     return function () {
-      _DOMUtils.removeEventListener(window, 'popstate', popStateListener);
+      removeEventListener(window, 'popstate', popStateListener);
     };
   }
 
@@ -92,16 +76,16 @@ function createBrowserHistory() {
     var action = location.action;
     var key = location.key;
 
-    if (action === _Actions.POP) return; // Nothing to do.
+    if (action === POP) return; // Nothing to do.
 
-    _DOMStateStorage.saveState(key, state);
+    saveState(key, state);
 
     var path = (basename || '') + pathname + search + hash;
     var historyState = {
       key: key
     };
 
-    if (action === _Actions.PUSH) {
+    if (action === PUSH) {
       if (useRefresh) {
         window.location.href = path;
         return false; // Prevent location update.
@@ -119,10 +103,10 @@ function createBrowserHistory() {
     }
   }
 
-  var history = _createDOMHistory2['default'](_extends({}, options, {
+  var history = createDOMHistory(_extends({}, options, {
     getCurrentLocation: getCurrentLocation,
     finishTransition: finishTransition,
-    saveState: _DOMStateStorage.saveState
+    saveState: saveState
   }));
 
   var listenerCount = 0,
@@ -174,5 +158,4 @@ function createBrowserHistory() {
   });
 }
 
-exports['default'] = createBrowserHistory;
-module.exports = exports['default'];
+export default createBrowserHistory;

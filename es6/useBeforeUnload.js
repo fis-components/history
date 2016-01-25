@@ -1,22 +1,11 @@
 'use strict';
 
-exports.__esModule = true;
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _warning = require('warning');
-
-var _warning2 = _interopRequireDefault(_warning);
-
-var _ExecutionEnvironment = require('./ExecutionEnvironment');
-
-var _DOMUtils = require('./DOMUtils');
-
-var _deprecate = require('./deprecate');
-
-var _deprecate2 = _interopRequireDefault(_deprecate);
+import warning from 'warning';
+import { canUseDOM } from './ExecutionEnvironment';
+import { addEventListener, removeEventListener } from './DOMUtils';
+import deprecate from './deprecate';
 
 function startBeforeUnloadListener(getBeforeUnloadPromptMessage) {
   function listener(event) {
@@ -28,10 +17,10 @@ function startBeforeUnloadListener(getBeforeUnloadPromptMessage) {
     }
   }
 
-  _DOMUtils.addEventListener(window, 'beforeunload', listener);
+  addEventListener(window, 'beforeunload', listener);
 
   return function () {
-    _DOMUtils.removeEventListener(window, 'beforeunload', listener);
+    removeEventListener(window, 'beforeunload', listener);
   };
 }
 
@@ -59,10 +48,10 @@ function useBeforeUnload(createHistory) {
       beforeUnloadHooks.push(hook);
 
       if (beforeUnloadHooks.length === 1) {
-        if (_ExecutionEnvironment.canUseDOM) {
+        if (canUseDOM) {
           stopBeforeUnloadListener = startBeforeUnloadListener(getBeforeUnloadPromptMessage);
         } else {
-          "production" !== 'production' ? _warning2['default'](false, 'listenBeforeUnload only works in DOM environments') : undefined;
+          process.env.NODE_ENV !== 'production' ? warning(false, 'listenBeforeUnload only works in DOM environments') : undefined;
         }
       }
 
@@ -80,7 +69,7 @@ function useBeforeUnload(createHistory) {
 
     // deprecated
     function registerBeforeUnloadHook(hook) {
-      if (_ExecutionEnvironment.canUseDOM && beforeUnloadHooks.indexOf(hook) === -1) {
+      if (canUseDOM && beforeUnloadHooks.indexOf(hook) === -1) {
         beforeUnloadHooks.push(hook);
 
         if (beforeUnloadHooks.length === 1) stopBeforeUnloadListener = startBeforeUnloadListener(getBeforeUnloadPromptMessage);
@@ -101,11 +90,10 @@ function useBeforeUnload(createHistory) {
     return _extends({}, history, {
       listenBeforeUnload: listenBeforeUnload,
 
-      registerBeforeUnloadHook: _deprecate2['default'](registerBeforeUnloadHook, 'registerBeforeUnloadHook is deprecated; use listenBeforeUnload instead'),
-      unregisterBeforeUnloadHook: _deprecate2['default'](unregisterBeforeUnloadHook, 'unregisterBeforeUnloadHook is deprecated; use the callback returned from listenBeforeUnload instead')
+      registerBeforeUnloadHook: deprecate(registerBeforeUnloadHook, 'registerBeforeUnloadHook is deprecated; use listenBeforeUnload instead'),
+      unregisterBeforeUnloadHook: deprecate(unregisterBeforeUnloadHook, 'unregisterBeforeUnloadHook is deprecated; use the callback returned from listenBeforeUnload instead')
     });
   };
 }
 
-exports['default'] = useBeforeUnload;
-module.exports = exports['default'];
+export default useBeforeUnload;

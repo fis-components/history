@@ -1,28 +1,12 @@
 'use strict';
 
-exports.__esModule = true;
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _warning = require('warning');
-
-var _warning2 = _interopRequireDefault(_warning);
-
-var _invariant = require('invariant');
-
-var _invariant2 = _interopRequireDefault(_invariant);
-
-var _Actions = require('./Actions');
-
-var _createHistory = require('./createHistory');
-
-var _createHistory2 = _interopRequireDefault(_createHistory);
-
-var _parsePath = require('./parsePath');
-
-var _parsePath2 = _interopRequireDefault(_parsePath);
+import warning from 'warning';
+import invariant from 'invariant';
+import { PUSH, REPLACE, POP } from './Actions';
+import createHistory from './createHistory';
+import parsePath from './parsePath';
 
 function createStateStorage(entries) {
   return entries.filter(function (entry) {
@@ -42,7 +26,7 @@ function createMemoryHistory() {
     options = { entries: [options] };
   }
 
-  var history = _createHistory2['default'](_extends({}, options, {
+  var history = createHistory(_extends({}, options, {
     getCurrentLocation: getCurrentLocation,
     finishTransition: finishTransition,
     saveState: saveState,
@@ -66,13 +50,13 @@ function createMemoryHistory() {
 
     if (typeof entry === 'object' && entry) return _extends({}, entry, { key: key });
 
-    !false ? "production" !== 'production' ? _invariant2['default'](false, 'Unable to create history entry from %s', entry) : _invariant2['default'](false) : undefined;
+    !false ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Unable to create history entry from %s', entry) : invariant(false) : undefined;
   });
 
   if (current == null) {
     current = entries.length - 1;
   } else {
-    !(current >= 0 && current < entries.length) ? "production" !== 'production' ? _invariant2['default'](false, 'Current index must be >= 0 and < %s, was %s', entries.length, current) : _invariant2['default'](false) : undefined;
+    !(current >= 0 && current < entries.length) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Current index must be >= 0 and < %s, was %s', entries.length, current) : invariant(false) : undefined;
   }
 
   var storage = createStateStorage(entries);
@@ -103,7 +87,7 @@ function createMemoryHistory() {
       entry.key = key;
     }
 
-    var location = _parsePath2['default'](path);
+    var location = parsePath(path);
 
     return history.createLocation(_extends({}, location, { state: state }), undefined, key);
   }
@@ -116,7 +100,7 @@ function createMemoryHistory() {
   function go(n) {
     if (n) {
       if (!canGo(n)) {
-        "production" !== 'production' ? _warning2['default'](false, 'Cannot go(%s) there is not enough history', n) : undefined;
+        process.env.NODE_ENV !== 'production' ? warning(false, 'Cannot go(%s) there is not enough history', n) : undefined;
         return;
       }
 
@@ -125,13 +109,13 @@ function createMemoryHistory() {
       var currentLocation = getCurrentLocation();
 
       // change action to POP
-      history.transitionTo(_extends({}, currentLocation, { action: _Actions.POP }));
+      history.transitionTo(_extends({}, currentLocation, { action: POP }));
     }
   }
 
   function finishTransition(location) {
     switch (location.action) {
-      case _Actions.PUSH:
+      case PUSH:
         current += 1;
 
         // if we are not on the top of stack
@@ -141,7 +125,7 @@ function createMemoryHistory() {
         entries.push(location);
         saveState(location.key, location.state);
         break;
-      case _Actions.REPLACE:
+      case REPLACE:
         entries[current] = location;
         saveState(location.key, location.state);
         break;
@@ -151,5 +135,4 @@ function createMemoryHistory() {
   return history;
 }
 
-exports['default'] = createMemoryHistory;
-module.exports = exports['default'];
+export default createMemoryHistory;
