@@ -130,7 +130,7 @@ function createHistory() {
           var prevPath = createPath(location);
           var nextPath = createPath(nextLocation);
 
-          if (nextPath === prevPath) nextLocation.action = REPLACE;
+          if (nextPath === prevPath && deepEqual(location.state, nextLocation.state)) nextLocation.action = REPLACE;
         }
 
         if (finishTransition(nextLocation) !== false) updateLocation(nextLocation);
