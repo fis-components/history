@@ -1,3 +1,4 @@
+import { canUseDOM } from './ExecutionEnvironment'
 import runTransitionHook from './runTransitionHook'
 import parsePath from './parsePath'
 
@@ -5,6 +6,15 @@ function useBasename(createHistory) {
   return function (options={}) {
     let { basename, ...historyOptions } = options
     let history = createHistory(historyOptions)
+
+    // Automatically use the value of <base href> in HTML
+    // documents as basename if it's not explicitly given.
+    if (basename == null && canUseDOM) {
+      let base = document.getElementsByTagName('base')[0]
+
+      if (base)
+        basename = base.href
+    }
 
     function addBasename(location) {
       if (basename && location.basename == null) {
@@ -29,7 +39,10 @@ function useBasename(createHistory) {
       if (typeof path === 'string')
         path = parsePath(path)
 
-      const pathname = basename + path.pathname
+      const pname = path.pathname
+      const normalizedBasename = basename.slice(-1) === '/' ? basename : basename + '/'
+      const normalizedPathname = pname.charAt(0) === '/' ? pname.slice(1) : pname
+      const pathname = normalizedBasename + normalizedPathname
 
       return {
         ...path,
