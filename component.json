@@ -1,7 +1,7 @@
 {
     "name": "history",
-    "description": "A minimal, functional history implementation for JavaScript",
-    "repos": "https://github.com/rackt/history.git",
+    "description": "Manage browser history with JavaScript",
+    "repos": "https://github.com/mjackson/history.git",
     "main": "lib/index",
     "tag": "master",
     "reposType": "npm",
@@ -11,5 +11,5 @@
         "query-string": "^3.0.0",
         "warning": "^2.0.0"
     },
-    "version": "2.0.1"
+    "version": "2.0.2"
 }
